@@ -32,29 +32,31 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && isOnGround && !gameOver) //при нажатии на пробел (и ещё если перс стоит на земле) (и ещё если игра не закончена (gameOver==false) (если это не поставить, то перс мёртвым будет прыгать при нажатии на пробел)):
-        {
-            playerRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse); //перс прыгнет вверх (ибо указано направление Vector3.up) на jumpForce юнитов вверх с импульсом ForceMode.Impulse
-            isOnGround = false; //перс не соприкасается с землёй (ну логично, он же прыгнул с помощью строки чуть выше)
+        MultiJump();
 
-            playerAnim.SetTrigger("Jump_trig"); //подрубается анимация прыжка за счёт использования переменной Jump_trig
+        //if (Input.GetKeyDown(KeyCode.Space) && isOnGround && !gameOver) //при нажатии на пробел (и ещё если перс стоит на земле) (и ещё если игра не закончена (gameOver==false) (если это не поставить, то перс мёртвым будет прыгать при нажатии на пробел)):
+        //{
+        //    playerRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse); //перс прыгнет вверх (ибо указано направление Vector3.up) на jumpForce юнитов вверх с импульсом ForceMode.Impulse
+        //    isOnGround = false; //перс не соприкасается с землёй (ну логично, он же прыгнул с помощью строки чуть выше)
 
-            dirtParticle.Stop(); //анимация грязи останавливается
+        //    playerAnim.SetTrigger("Jump_trig"); //подрубается анимация прыжка за счёт использования переменной Jump_trig
 
-            playerAudio.PlayOneShot(jumpSound, 1.0f); //проигрывается звук, указанный в переменной jumpSound. проигрывается он один раз (ибо указано One). 1.0f - громкость звука: 0.1 - минимальная громкость, 1.0 - максимальная громкость.
+        //    dirtParticle.Stop(); //анимация грязи останавливается
 
-            doubleJumpUsed = false; //то есть если перс игрока прыгает, то ему можно совершить двойной прыжок
+        //    playerAudio.PlayOneShot(jumpSound, 1.0f); //проигрывается звук, указанный в переменной jumpSound. проигрывается он один раз (ибо указано One). 1.0f - громкость звука: 0.1 - минимальная громкость, 1.0 - максимальная громкость.
 
-        }
-        else if (Input.GetKeyDown(KeyCode.Space) && !gameOver && !doubleJumpUsed) //при нажатии на пробел (и если игра не закончена) (и если двойной прыжок ещё не совершён), то:
-        {
-            doubleJumpUsed = true; //теперь, когда перс игрока совершает двойной прыжок, ему нельзя будет ещё прыгать (нельзя совершить тройной прыжок)
-            playerRb.AddForce(Vector3.up * doubleJumpForce, ForceMode.Impulse); //перс прыгнет вверх (ибо указано направление Vector3.up) на doubleJumpForce юнитов вверх с импульсом ForceMode.Impulse
-            playerAnim.SetTrigger("Jump_trig"); //подрубается анимация прыжка за счёт использования переменной Jump_trig
-            dirtParticle.Stop(); //анимация грязи останавливается
-            playerAudio.PlayOneShot(jumpSound, 1.0f); //проигрывается звук, указанный в переменной jumpSound. проигрывается он один раз (ибо указано One). 1.0f - громкость звука: 0.1 - минимальная громкость, 1.0 - максимальная громкость.
+        //    doubleJumpUsed = false; //то есть если перс игрока прыгает, то ему можно совершить двойной прыжок
 
-        }
+        //}
+        //else if (Input.GetKeyDown(KeyCode.Space) && !gameOver && !doubleJumpUsed) //при нажатии на пробел (и если игра не закончена) (и если двойной прыжок ещё не совершён), то:
+        //{
+        //    doubleJumpUsed = true; //теперь, когда перс игрока совершает двойной прыжок, ему нельзя будет ещё прыгать (нельзя совершить тройной прыжок)
+        //    playerRb.AddForce(Vector3.up * doubleJumpForce, ForceMode.Impulse); //перс прыгнет вверх (ибо указано направление Vector3.up) на doubleJumpForce юнитов вверх с импульсом ForceMode.Impulse
+        //    playerAnim.SetTrigger("Jump_trig"); //подрубается анимация прыжка за счёт использования переменной Jump_trig
+        //    dirtParticle.Stop(); //анимация грязи останавливается
+        //    playerAudio.PlayOneShot(jumpSound, 1.0f); //проигрывается звук, указанный в переменной jumpSound. проигрывается он один раз (ибо указано One). 1.0f - громкость звука: 0.1 - минимальная громкость, 1.0 - максимальная громкость.
+
+        //}
 
         if (Input.GetKey(KeyCode.Q)) //при нажатии на кнопку Q:
         {
@@ -68,6 +70,35 @@ public class PlayerController : MonoBehaviour
         }
 
 
+    }
+
+    int jumpCount;
+    bool isStopJumping;
+    void MultiJump()
+    {
+        if (isOnGround && !gameOver) //если мы на земле и игра не закончилась, то:
+        {
+            jumpCount = 0; //значит не прыгаем
+            isStopJumping = false; //соответственно ограничений на прыжки нет
+        }
+
+        if (!isStopJumping && (playerRb.velocity.y < 0 || isOnGround)) //если ограничений на прыжки нет и если мы в этот момент не прыгаем (чтоб прыжками флудить нельзя было) или мы не на земле, то:
+        {
+            if (Input.GetKeyDown(KeyCode.Space)) //если нажали на пробел:
+            {
+                isOnGround = false; //мы не на земле
+                jumpCount++; //увеличиваем ограничитель прыжков
+
+                if (jumpCount <= 2) //сравниваем ограничитель прыжков с максимальным кол-вом прыжков за 1 раз
+                {
+                    playerRb.velocity = Vector3.zero;
+                    playerAnim.SetTrigger("Jump_trig"); //анимация прыжка
+                    playerRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse); //прыгаем
+                    dirtParticle.Stop();
+                    playerAudio.PlayOneShot(jumpSound, 1.0f);
+                }
+            }
+        }
     }
 
     private void OnCollisionEnter(Collision collision) //стандартная функция, вызывается когда жёсткое тело объекта, к которому прикреплён этот скрипт (то есть перс) соприкасается с другим жёстким телом
